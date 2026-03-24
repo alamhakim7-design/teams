@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Workspace Dashboard</title>
+    <style>
+        /* Step 2: The CSS Styling */
+        :root {
+            --primary-color: #6366f1; /* A modern indigo */
+            --bg-color: #f3f4f6;
+            --sidebar-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            padding: 24px 16px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            padding-left: 12px;
+        }
+
+        .nav-item {
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Main Content Area Styling */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Smooth animation for switching tabs */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card components inside the tabs */
+        .header-title {
+            font-size: 28px;
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-bubble {
+            background: #e0e7ff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">ReedTeams  App</div>
+        
+        <div class="nav-item active" onclick="openTab(event, 'feed')">
+            <span>📰</span> Activity Feed
+        </div>
+        <div class="nav-item" onclick="openTab(event, 'teams')">
+            <span>👥</span> My Teams
+        </div>
+        <div class="nav-item" onclick="openTab(event, 'calendar')">
+            <span>📅</span> Calendar
+        </div>
+        <div class="nav-item" onclick="openTab(event, 'chat')">
+            <span>💬</span> Direct Chat
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="feed" class="tab-panel active">
+            <h1 class="header-title">Activity Feed</h1>
+            <div class="card">
+                <strong>Marketing Team</strong> just uploaded the Q3 Strategy Deck.
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">2 hours ago</p>
+            </div>
+            <div class="card">
+                <strong>System Alert:</strong> Scheduled maintenance will occur this Sunday at 2 AM.
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">5 hours ago</p>
+            </div>
+        </div>
+
+        <div id="teams" class="tab-panel">
+            <h1 class="header-title">My Teams</h1>
+            <div class="card" style="display: flex; gap: 20px;">
+                <div style="background: #fee2e2; color: #ef4444; padding: 20px; border-radius: 12px; font-weight: bold;">Design Guild</div>
+                <div style="background: #dcfce7; color: #22c55e; padding: 20px; border-radius: 12px; font-weight: bold;">Engineering</div>
+                <div style="background: #fef3c7; color: #f59e0b; padding: 20px; border-radius: 12px; font-weight: bold;">Marketing</div>
+            </div>
+        </div>
+
+        <div id="calendar" class="tab-panel">
+            <h1 class="header-title">Calendar</h1>
+            <div class="card">
+                <h3>Today's Schedule</h3>
+                <ul style="line-height: 2;">
+                    <li><strong>10:00 AM</strong> - Weekly Sync (Zoom)</li>
+                    <li><strong>1:30 PM</strong> - Design Review</li>
+                    <li><strong>4:00 PM</strong> - 1-on-1 with Sarah</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="chat" class="tab-panel">
+            <h1 class="header-title">Direct Chat</h1>
+            <div class="card" style="height: 300px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <div>
+                    <div class="chat-bubble">Hey! Did you get a chance to look at the new layouts?</div><br>
+                    <div class="chat-bubble" style="background: var(--bg-color); color: var(--text-main); border-bottom-left-radius: 16px; border-bottom-right-radius: 4px;">Yes, they look fantastic! I'll leave some comments on the Figma file soon.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            // 1. Hide all elements with the class "tab-panel"
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            tabPanels.forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // 2. Remove the "active" class from all navigation items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 3. Show the specific tab we clicked on
+            document.getElementById(tabName).classList.add('active');
+
+            // 4. Highlight the button that opened the tab
+            evt.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
