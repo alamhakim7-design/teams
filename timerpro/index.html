@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glass Rotary Timer</title>
+    <title>Glass Rotary Timer Pro</title>
     <style>
         :root {
-            /* Solid dark OS background, but UI elements are glassy */
             --bg-color: #050505; 
             --glass-surface: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
@@ -15,6 +14,7 @@
             --accent-red: #ff453a;
             --text-primary: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.6);
+            --toast-bg: rgba(20, 20, 20, 0.85);
         }
 
         body {
@@ -86,7 +86,6 @@
             align-items: center;
             cursor: grab;
             flex-shrink: 0;
-            /* 70% Translucent Glass Effect inside the clock */
             background: rgba(255, 255, 255, 0.02);
             border-radius: 50%;
             border: 1px solid var(--glass-border);
@@ -166,13 +165,33 @@
         .btn.is-running { color: var(--accent-red) !important; background-color: rgba(255, 69, 58, 0.1) !important; border-color: rgba(255, 69, 58, 0.3) !important; }
         .btn.is-running:hover { background-color: rgba(255, 69, 58, 0.2) !important; }
 
-        /* Alerts */
         @keyframes pulse-ring {
             0% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.02); opacity: 0.8; filter: drop-shadow(0 0 20px rgba(255, 69, 58, 0.6)); }
             100% { transform: scale(1); opacity: 1; }
         }
         .alert-active { stroke: var(--accent-red) !important; animation: pulse-ring 1.5s infinite ease-in-out; }
+
+        /* --- GLASS TOAST NOTIFICATION --- */
+        .win11-toast { 
+            position: fixed; bottom: 20px; right: -350px; width: 280px; 
+            background: var(--toast-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 15px; 
+            display: flex; align-items: center; gap: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); 
+            transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; 
+        }
+        .toast-show { right: 20px; } /* Slides in */
+        
+        .toast-icon { 
+            width: 36px; height: 36px; border-radius: 8px; 
+            background: rgba(50, 215, 75, 0.2); border: 1px solid rgba(50, 215, 75, 0.5);
+            display: flex; justify-content: center; align-items: center; font-size: 1.1rem; 
+        }
+        .toast-content { flex-grow: 1; }
+        .toast-title { font-weight: bold; font-size: 0.95rem; margin: 0 0 2px 0; color: #fff; }
+        .toast-msg { font-size: 0.8rem; margin: 0; color: #bbb; }
+        .toast-close { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
+        .toast-close:hover { color: #fff; }
     </style>
 </head>
 <body>
@@ -205,9 +224,19 @@
         </div>
     </div>
 
+    <div class="win11-toast" id="custom-toast">
+        <div class="toast-icon">⏳</div>
+        <div class="toast-content">
+            <p class="toast-title">Timer Complete</p>
+            <p class="toast-msg">Your session is finished.</p>
+        </div>
+        <button class="toast-close" id="close-toast-btn">×</button>
+    </div>
+
     <script>
-        // Cache all DOM elements immediately so they never lose reference when moving to the PiP window
+        // Cache DOM elements
         const scaler = document.getElementById('app-scaler');
+        const toastEl = document.getElementById('custom-toast');
         const timeText = document.getElementById('time-text');
         const startBtn = document.getElementById('start-btn');
         const resetBtn = document.getElementById('reset-btn');
@@ -217,8 +246,8 @@
         const utilityBar = document.getElementById('utility-bar');
         const dial = document.getElementById('dial');
         const pipBtn = document.getElementById('pip-btn');
+        const closeToastBtn = document.getElementById('close-toast-btn');
 
-        // Track which window is currently active (Main Tab vs Popout Widget)
         let currentWindow = window;
         let currentDocument = document;
         let flashInterval;
@@ -240,7 +269,7 @@
                 const style = document.querySelector('style').cloneNode(true);
                 pipWin.document.head.appendChild(style);
                 
-                // Set OS-enforced solid background for the new window
+                // Set solid dark background for PiP
                 pipWin.document.body.style.backgroundColor = "#050505";
                 pipWin.document.body.style.margin = "0";
                 pipWin.document.body.style.display = "flex";
@@ -249,11 +278,12 @@
                 pipWin.document.body.style.height = "100vh";
                 pipWin.document.body.style.overflow = "hidden";
                 
-                // Move the entire clock interface into the popup
+                // Move the Clock AND the Toaster into the popup window
                 pipWin.document.body.appendChild(scaler);
+                pipWin.document.body.appendChild(toastEl);
                 utilityBar.style.display = 'none'; 
                 
-                // Re-route scaling and mouse events to the new window
+                // Update Window References
                 currentWindow.removeEventListener('resize', resizeApp);
                 currentWindow = pipWin;
                 currentDocument = pipWin.document;
@@ -261,11 +291,13 @@
                 currentWindow.addEventListener('resize', resizeApp);
                 currentWindow.addEventListener('mouseup', handleMouseUp);
                 currentWindow.addEventListener('mousemove', handleMouseMove);
-                resizeApp(); // Force immediate scale to fit the new popup
+                resizeApp(); 
                 
-                // Handle when the popup is closed
+                // Handle closing the PiP Window
                 pipWin.addEventListener('pagehide', () => {
+                    // Move the Clock AND the Toaster back to the main tab
                     document.body.appendChild(scaler);
+                    document.body.appendChild(toastEl);
                     utilityBar.style.display = 'block';
                     
                     currentWindow.removeEventListener('resize', resizeApp);
@@ -291,17 +323,26 @@
             if(!scaler) return;
             const baseWidth = 450; 
             const baseHeight = 650;
-            
-            // Calculates scale perfectly based on whichever window is currently active
             const scaleX = currentWindow.innerWidth / baseWidth;
             const scaleY = currentWindow.innerHeight / baseHeight;
             let scale = Math.min(scaleX, scaleY);
             if (scale > 1.2) scale = 1.2; 
-            
             scaler.style.transform = `scale(${scale})`;
         }
         currentWindow.addEventListener('resize', resizeApp);
         resizeApp();
+
+        // --- TOASTER LOGIC ---
+        let toastTimeout;
+        function showToast() {
+            toastEl.classList.add('toast-show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(closeToast, 6000); // Auto-hide after 6 seconds
+        }
+        function closeToast() {
+            toastEl.classList.remove('toast-show');
+        }
+        closeToastBtn.addEventListener('click', closeToast);
 
         // --- AUDIO CHIME ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -361,8 +402,8 @@
             ring.style.strokeDashoffset = 0;
             
             playChime();
+            showToast(); // Trigger the toast in the active window!
 
-            // Flash the title of the active window
             let flash = false;
             flashInterval = setInterval(() => {
                 currentDocument.title = flash ? "🔴 TIME UP!" : "Timer Done";
@@ -388,6 +429,7 @@
                 ring.style.stroke = "var(--accent-green)";
                 clearInterval(flashInterval);
                 currentDocument.title = "Timer Running";
+                closeToast(); // Hide toast if active
                 
                 timerId = setInterval(() => {
                     timeLeft--;
@@ -404,7 +446,6 @@
             }
         });
 
-        // The reset button now reliably works inside the PiP window
         resetBtn.addEventListener('click', () => {
             clearInterval(timerId);
             clearInterval(flashInterval);
@@ -414,6 +455,7 @@
             startBtn.classList.remove('is-running');
             stats.reset++;
             statResetText.innerText = stats.reset;
+            closeToast(); // Clear toast on reset
             setTime(0);
         });
 
@@ -432,12 +474,10 @@
             lastAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
         });
 
-        // Centralized drag functions so they can be securely attached to whichever window is active
         function handleMouseUp() { isDragging = false; }
         function handleMouseMove(e) {
             if (!isDragging || isRunning) return;
             const rect = dial.getBoundingClientRect();
-            
             const currentAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
             let delta = currentAngle - lastAngle;
             if (delta > Math.PI) delta -= Math.PI * 2;
@@ -449,7 +489,6 @@
             }
         }
 
-        // Attach mouse events to the initial main window
         currentWindow.addEventListener('mouseup', handleMouseUp);
         currentWindow.addEventListener('mousemove', handleMouseMove);
 
