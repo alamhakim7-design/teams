@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple Style Timer</title>
+    <title>Sleek Green Rotary Timer</title>
     <style>
         :root {
-            /* Apple Color Palette */
+            /* Ultra-Sleek Apple Palette */
             --bg-color: #000000;
-            --surface-color: #1c1c1e;
-            --accent-orange: #ff9f0a;
-            --accent-green: #30d158;
+            --surface-color: rgba(255, 255, 255, 0.08);
+            --accent-green: #32d74b; /* iOS Neon Green */
+            --accent-green-glow: rgba(50, 215, 75, 0.4);
             --accent-red: #ff453a;
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
-            --btn-gray: #333336;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            /* Forces Apple's San Francisco font if available, falling back to clean sans-serif */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -31,13 +29,20 @@
             overflow: hidden;
             user-select: none;
             -webkit-font-smoothing: antialiased;
+            /* Smooth fade-in on load */
+            animation: fadeIn 0.8s ease-out;
         }
 
-        /* --- MAIN TIMER DIAL --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- THE ROTARY DIAL --- */
         .timer-container {
             position: relative;
-            width: 340px;
-            height: 340px;
+            width: 360px;
+            height: 360px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,30 +50,33 @@
         }
         .timer-container:active { cursor: grabbing; }
 
-        /* SVG Ring */
+        /* SVG Ring with Ambient Glow */
         .progress-ring {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             pointer-events: none;
             transform: rotate(-90deg);
+            /* Adds a subtle optical glow to the whole ring */
+            filter: drop-shadow(0 0 12px var(--accent-green-glow));
+            transition: filter 0.3s ease;
         }
         
         .ring-bg {
             fill: none;
             stroke: #1a1a1a;
-            stroke-width: 12;
+            stroke-width: 10; /* Slightly thinner for elegance */
         }
 
         .ring-progress {
             fill: none;
-            stroke: var(--accent-orange);
-            stroke-width: 12;
+            stroke: var(--accent-green);
+            stroke-width: 10;
             stroke-linecap: round;
             transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
         }
 
-        /* Time Display */
+        /* Time Typography */
         .time-display {
             display: flex;
             flex-direction: column;
@@ -77,100 +85,98 @@
         }
 
         .time-text {
-            font-size: 5.5rem;
-            font-weight: 200; /* Ultra-light Apple weight */
-            letter-spacing: -2px;
+            font-size: 6rem; /* Slightly larger, thinner font */
+            font-weight: 100;
+            letter-spacing: -3px;
             margin: 0;
             line-height: 1;
-            /* Ensures numbers don't jump around when changing */
             font-variant-numeric: tabular-nums; 
         }
 
-        /* --- USAGE STATS (Pill Badges) --- */
+        /* --- USAGE STATS (Glass Pills) --- */
         .stats-container {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-top: 15px;
         }
 
         .stat-pill {
             background-color: var(--surface-color);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: var(--text-secondary);
             font-size: 0.75rem;
             font-weight: 600;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 20px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
         }
         .stat-val {
             color: var(--text-primary);
-            margin-left: 4px;
+            margin-left: 6px;
+            font-weight: 700;
         }
 
-        /* --- CIRCULAR BUTTONS --- */
+        /* --- SLEEK BUTTONS --- */
         .controls {
             display: flex;
-            gap: 40px;
-            margin-top: 50px;
+            gap: 50px;
+            margin-top: 60px;
         }
 
         .btn {
-            width: 80px;
-            height: 80px;
+            width: 85px;
+            height: 85px;
             border-radius: 50%;
             border: none;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Apple Watch style inner border */
-            box-shadow: inset 0 0 0 2px var(--bg-color);
-        }
-
-        .btn:active {
-            opacity: 0.6;
-            transform: scale(0.95);
-        }
-
-        #reset-btn {
-            background-color: var(--btn-gray);
+            background-color: var(--surface-color);
             color: var(--text-primary);
-            border: 2px solid var(--btn-gray);
+            backdrop-filter: blur(10px);
         }
+
+        .btn:hover { background-color: rgba(255, 255, 255, 0.15); }
+        .btn:active { transform: scale(0.9); opacity: 0.8; }
 
         #start-btn {
-            background-color: rgba(48, 209, 88, 0.2);
             color: var(--accent-green);
-            border: 2px solid rgba(48, 209, 88, 0.3);
+            background-color: rgba(50, 215, 75, 0.15);
         }
+        #start-btn:hover { background-color: rgba(50, 215, 75, 0.25); }
 
         .btn.is-running {
-            background-color: rgba(255, 159, 10, 0.2) !important;
-            color: var(--accent-orange) !important;
-            border-color: rgba(255, 159, 10, 0.3) !important;
+            color: var(--accent-red) !important;
+            background-color: rgba(255, 69, 58, 0.15) !important;
         }
+        .btn.is-running:hover { background-color: rgba(255, 69, 58, 0.25) !important; }
 
         /* Alert State Animation */
         @keyframes pulse-ring {
             0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
+            50% { transform: scale(1.02); opacity: 0.8; filter: drop-shadow(0 0 20px rgba(255, 69, 58, 0.6)); }
             100% { transform: scale(1); opacity: 1; }
         }
         .alert-active {
             stroke: var(--accent-red) !important;
             animation: pulse-ring 1.5s infinite ease-in-out;
         }
+        .alert-glow { filter: drop-shadow(0 0 12px rgba(255, 69, 58, 0.4)); }
 
-        /* Instruction Hint */
         .hint {
             position: absolute;
             top: 40px;
-            color: #555;
+            color: #444;
             font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -179,9 +185,9 @@
     <div class="hint">Scroll or Drag ring to set time</div>
 
     <div class="timer-container" id="dial">
-        <svg class="progress-ring" viewBox="0 0 340 340">
-            <circle class="ring-bg" cx="170" cy="170" r="160"></circle>
-            <circle class="ring-progress" id="progress-bar" cx="170" cy="170" r="160"></circle>
+        <svg class="progress-ring" id="ring-svg" viewBox="0 0 360 360">
+            <circle class="ring-bg" cx="180" cy="180" r="170"></circle>
+            <circle class="ring-progress" id="progress-bar" cx="180" cy="180" r="170"></circle>
         </svg>
 
         <div class="time-display">
@@ -200,11 +206,10 @@
     </div>
 
     <script>
-        // --- NATIVE AUDIO CHIME ---
+        // --- AUDIO CHIME ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playChime() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            // Create a pleasant, soft marimba-like double chime (Apple-esque)
             const playNote = (freq, startTime) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -217,11 +222,11 @@
                 osc.start(startTime); osc.stop(startTime + 0.6);
             };
             const now = audioCtx.currentTime;
-            playNote(880, now);        // Note 1
-            playNote(1108.73, now + 0.15); // Note 2
+            playNote(880, now); 
+            playNote(1108.73, now + 0.15); 
         }
 
-        // --- TIMER ENGINE & UI ---
+        // --- TIMER ENGINE ---
         let timeTotal = 0, timeLeft = 0, timerId = null, isRunning = false;
         let stats = { comp: 0, reset: 0 };
 
@@ -229,9 +234,9 @@
         const startBtn = document.getElementById('start-btn');
         const resetBtn = document.getElementById('reset-btn');
         const ring = document.getElementById('progress-bar');
+        const ringSvg = document.getElementById('ring-svg');
         
-        // Calculate SVG Circle length
-        const radius = 160;
+        const radius = 170;
         const circumference = 2 * Math.PI * radius;
         ring.style.strokeDasharray = circumference;
         ring.style.strokeDashoffset = 0;
@@ -244,14 +249,14 @@
 
         function setTime(seconds) {
             if (isRunning) return;
-            timeLeft = Math.max(0, Math.min(seconds, 5999)); // Max 99:59
+            timeLeft = Math.max(0, Math.min(seconds, 5999)); 
             timeTotal = timeLeft;
             timeText.innerText = formatTime(timeLeft);
             
-            // Reset visual states
             ring.style.strokeDashoffset = 0;
             ring.classList.remove('alert-active');
-            ring.style.stroke = "var(--accent-orange)";
+            ringSvg.classList.remove('alert-glow');
+            ring.style.stroke = "var(--accent-green)";
             document.title = "Timer";
         }
 
@@ -264,18 +269,17 @@
             startBtn.classList.remove('is-running');
             
             ring.classList.add('alert-active');
+            ringSvg.classList.add('alert-glow');
             ring.style.strokeDashoffset = 0;
             
             document.title = "🔴 TIME UP!";
             playChime();
 
-            // Native Notification
             if ("Notification" in window && Notification.permission === "granted") {
                 new Notification("Timer Done", { body: "Your session has completed." });
             }
         }
 
-        // --- BUTTON ACTIONS ---
         startBtn.addEventListener('click', async () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             if ("Notification" in window && Notification.permission === "default") {
@@ -285,25 +289,23 @@
             if (timeLeft <= 0) return;
 
             if (isRunning) {
-                // Pause
                 clearInterval(timerId);
                 isRunning = false;
                 startBtn.innerText = 'Resume';
                 startBtn.classList.remove('is-running');
             } else {
-                // Start
                 isRunning = true;
                 startBtn.innerText = 'Pause';
                 startBtn.classList.add('is-running');
                 ring.classList.remove('alert-active');
-                ring.style.stroke = "var(--accent-orange)";
+                ringSvg.classList.remove('alert-glow');
+                ring.style.stroke = "var(--accent-green)";
                 document.title = "Timer Running";
                 
                 timerId = setInterval(() => {
                     timeLeft--;
                     timeText.innerText = formatTime(timeLeft);
                     
-                    // Smooth ring depletion
                     const progress = timeLeft / timeTotal;
                     ring.style.strokeDashoffset = circumference - (progress * circumference);
                     
@@ -327,16 +329,14 @@
             setTime(0);
         });
 
-        // --- INTERACTION: SCROLL & DRAG ---
+        // --- INTERACTION ---
         const dial = document.getElementById('dial');
         
-        // Scroll wheel adds/subtracts minutes
         dial.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (!isRunning) setTime(timeLeft + (e.deltaY < 0 ? 60 : -60));
         }, { passive: false });
 
-        // Click and drag in a circle to set time
         let isDragging = false, lastAngle = 0;
         dial.addEventListener('mousedown', (e) => {
             if (isRunning) return;
@@ -354,14 +354,12 @@
             if (delta > Math.PI) delta -= Math.PI * 2;
             if (delta < -Math.PI) delta += Math.PI * 2;
             
-            // Adjust sensitivity (0.08 radians of movement)
             if (Math.abs(delta) > 0.08) {
                 setTime(timeLeft + (delta > 0 ? 60 : -60));
                 lastAngle = currentAngle;
             }
         });
 
-        // Initialize
         setTime(0);
     </script>
 </body>
