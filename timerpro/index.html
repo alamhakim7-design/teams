@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sleek Green Rotary Timer</title>
+    <title>Sleek Responsive Rotary Timer</title>
     <style>
         :root {
-            /* Ultra-Sleek Apple Palette */
             --bg-color: #000000;
             --surface-color: rgba(255, 255, 255, 0.08);
-            --accent-green: #32d74b; /* iOS Neon Green */
+            --accent-green: #32d74b;
             --accent-green-glow: rgba(50, 215, 75, 0.4);
             --accent-red: #ff453a;
             --text-primary: #ffffff;
@@ -19,23 +18,38 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* Prevents scrollbars when resizing */
             user-select: none;
             -webkit-font-smoothing: antialiased;
-            /* Smooth fade-in on load */
-            animation: fadeIn 0.8s ease-out;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* --- THE AUTO-SCALING WRAPPER --- */
+        /* This keeps everything perfectly spaced so nothing ever overlaps */
+        #app-scaler {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px; /* Fixed spacing between elements */
+            transform-origin: center center;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.1s ease-out;
+        }
+
+        .hint {
+            color: #555;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            text-align: center;
         }
 
         /* --- THE ROTARY DIAL --- */
@@ -47,27 +61,21 @@
             justify-content: center;
             align-items: center;
             cursor: grab;
+            flex-shrink: 0;
         }
         .timer-container:active { cursor: grabbing; }
 
-        /* SVG Ring with Ambient Glow */
         .progress-ring {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             pointer-events: none;
             transform: rotate(-90deg);
-            /* Adds a subtle optical glow to the whole ring */
             filter: drop-shadow(0 0 12px var(--accent-green-glow));
             transition: filter 0.3s ease;
         }
         
-        .ring-bg {
-            fill: none;
-            stroke: #1a1a1a;
-            stroke-width: 10; /* Slightly thinner for elegance */
-        }
-
+        .ring-bg { fill: none; stroke: #1a1a1a; stroke-width: 10; }
         .ring-progress {
             fill: none;
             stroke: var(--accent-green);
@@ -85,7 +93,7 @@
         }
 
         .time-text {
-            font-size: 6rem; /* Slightly larger, thinner font */
+            font-size: 6.5rem;
             font-weight: 100;
             letter-spacing: -3px;
             margin: 0;
@@ -93,11 +101,11 @@
             font-variant-numeric: tabular-nums; 
         }
 
-        /* --- USAGE STATS (Glass Pills) --- */
+        /* Usage Stats (Glass Pills) */
         .stats-container {
             display: flex;
             gap: 12px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .stat-pill {
@@ -105,25 +113,21 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             color: var(--text-secondary);
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 20px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
             box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
         }
-        .stat-val {
-            color: var(--text-primary);
-            margin-left: 6px;
-            font-weight: 700;
-        }
+        .stat-val { color: var(--text-primary); margin-left: 6px; font-weight: 700; }
 
         /* --- SLEEK BUTTONS --- */
         .controls {
             display: flex;
             gap: 50px;
-            margin-top: 60px;
+            flex-shrink: 0;
         }
 
         .btn {
@@ -146,66 +150,76 @@
         .btn:hover { background-color: rgba(255, 255, 255, 0.15); }
         .btn:active { transform: scale(0.9); opacity: 0.8; }
 
-        #start-btn {
-            color: var(--accent-green);
-            background-color: rgba(50, 215, 75, 0.15);
-        }
+        #start-btn { color: var(--accent-green); background-color: rgba(50, 215, 75, 0.15); }
         #start-btn:hover { background-color: rgba(50, 215, 75, 0.25); }
 
-        .btn.is-running {
-            color: var(--accent-red) !important;
-            background-color: rgba(255, 69, 58, 0.15) !important;
-        }
+        .btn.is-running { color: var(--accent-red) !important; background-color: rgba(255, 69, 58, 0.15) !important; }
         .btn.is-running:hover { background-color: rgba(255, 69, 58, 0.25) !important; }
 
-        /* Alert State Animation */
+        /* Alerts */
         @keyframes pulse-ring {
             0% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.02); opacity: 0.8; filter: drop-shadow(0 0 20px rgba(255, 69, 58, 0.6)); }
             100% { transform: scale(1); opacity: 1; }
         }
-        .alert-active {
-            stroke: var(--accent-red) !important;
-            animation: pulse-ring 1.5s infinite ease-in-out;
-        }
+        .alert-active { stroke: var(--accent-red) !important; animation: pulse-ring 1.5s infinite ease-in-out; }
         .alert-glow { filter: drop-shadow(0 0 12px rgba(255, 69, 58, 0.4)); }
 
-        .hint {
-            position: absolute;
-            top: 40px;
-            color: #444;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
     </style>
 </head>
 <body>
 
-    <div class="hint">Scroll or Drag ring to set time</div>
+    <div id="app-scaler">
+        
+        <div class="hint">Scroll or Drag ring to set time</div>
 
-    <div class="timer-container" id="dial">
-        <svg class="progress-ring" id="ring-svg" viewBox="0 0 360 360">
-            <circle class="ring-bg" cx="180" cy="180" r="170"></circle>
-            <circle class="ring-progress" id="progress-bar" cx="180" cy="180" r="170"></circle>
-        </svg>
+        <div class="timer-container" id="dial">
+            <svg class="progress-ring" id="ring-svg" viewBox="0 0 360 360">
+                <circle class="ring-bg" cx="180" cy="180" r="170"></circle>
+                <circle class="ring-progress" id="progress-bar" cx="180" cy="180" r="170"></circle>
+            </svg>
 
-        <div class="time-display">
-            <div class="time-text" id="time-text">00:00</div>
-            
-            <div class="stats-container">
-                <div class="stat-pill">Done<span class="stat-val" id="stat-comp">0</span></div>
-                <div class="stat-pill">Resets<span class="stat-val" id="stat-reset">0</span></div>
+            <div class="time-display">
+                <div class="time-text" id="time-text">00:00</div>
+                <div class="stats-container">
+                    <div class="stat-pill">Done<span class="stat-val" id="stat-comp">0</span></div>
+                    <div class="stat-pill">Resets<span class="stat-val" id="stat-reset">0</span></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="controls">
-        <button class="btn" id="reset-btn">Cancel</button>
-        <button class="btn" id="start-btn">Start</button>
+        <div class="controls">
+            <button class="btn" id="reset-btn">Cancel</button>
+            <button class="btn" id="start-btn">Start</button>
+        </div>
+
     </div>
 
     <script>
+        // --- RESPONSIVE AUTO-SCALING ENGINE ---
+        function resizeApp() {
+            const scaler = document.getElementById('app-scaler');
+            // Base dimensions the app was designed for
+            const baseWidth = 450; 
+            const baseHeight = 650;
+            
+            // Calculate scale factor based on window size
+            const scaleX = window.innerWidth / baseWidth;
+            const scaleY = window.innerHeight / baseHeight;
+            
+            // Pick the smallest scale so it always fits perfectly inside the window
+            let scale = Math.min(scaleX, scaleY);
+            
+            // Cap maximum size so it doesn't look absurdly huge on 4k monitors
+            if (scale > 1.2) scale = 1.2; 
+            
+            scaler.style.transform = `scale(${scale})`;
+        }
+
+        // Run immediately and whenever the window is resized
+        window.addEventListener('resize', resizeApp);
+        resizeApp();
+
         // --- AUDIO CHIME ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playChime() {
@@ -320,10 +334,8 @@
         resetBtn.addEventListener('click', () => {
             clearInterval(timerId);
             isRunning = false;
-            
             startBtn.innerText = 'Start';
             startBtn.classList.remove('is-running');
-            
             stats.reset++;
             document.getElementById('stat-reset').innerText = stats.reset;
             setTime(0);
@@ -349,6 +361,8 @@
         window.addEventListener('mousemove', (e) => {
             if (!isDragging || isRunning) return;
             const rect = dial.getBoundingClientRect();
+            
+            // Calculates rotation properly even when the interface is scaled down
             const currentAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
             let delta = currentAngle - lastAngle;
             if (delta > Math.PI) delta -= Math.PI * 2;
