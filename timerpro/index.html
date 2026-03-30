@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Always-On-Top Rotary Timer</title>
+    <title>Glass Rotary Timer</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --surface-color: rgba(255, 255, 255, 0.08);
+            /* Solid dark OS background, but UI elements are glassy */
+            --bg-color: #050505; 
+            --glass-surface: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
             --accent-green: #32d74b;
             --accent-green-glow: rgba(50, 215, 75, 0.4);
             --accent-red: #ff453a;
             --text-primary: #ffffff;
-            --text-secondary: #8e8e93;
+            --text-secondary: rgba(255, 255, 255, 0.6);
         }
 
         body {
@@ -29,7 +31,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Utility Bar for the Pop-Out Button */
+        /* Top Utility Bar */
         .utility-bar {
             position: absolute;
             top: 20px;
@@ -39,18 +41,16 @@
 
         .popout-btn {
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--glass-border);
             color: #fff;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         .popout-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
@@ -68,15 +68,15 @@
         }
 
         .hint {
-            color: #555;
-            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             font-weight: 600;
             text-align: center;
         }
 
-        /* Rotary Dial */
+        /* Glass Rotary Dial */
         .timer-container {
             position: relative;
             width: 360px;
@@ -86,6 +86,13 @@
             align-items: center;
             cursor: grab;
             flex-shrink: 0;
+            /* 70% Translucent Glass Effect inside the clock */
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
         }
         .timer-container:active { cursor: grabbing; }
 
@@ -99,11 +106,11 @@
             transition: filter 0.3s ease;
         }
         
-        .ring-bg { fill: none; stroke: #1a1a1a; stroke-width: 10; }
+        .ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 8; }
         .ring-progress {
             fill: none;
             stroke: var(--accent-green);
-            stroke-width: 10;
+            stroke-width: 8;
             stroke-linecap: round;
             transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
         }
@@ -127,11 +134,12 @@
 
         .stats-container { display: flex; gap: 12px; margin-top: 20px; }
         .stat-pill {
-            background-color: var(--surface-color);
+            background-color: var(--glass-surface);
+            border: 1px solid var(--glass-border);
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 20px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
@@ -141,20 +149,22 @@
         /* Controls */
         .controls { display: flex; gap: 50px; flex-shrink: 0; }
         .btn {
-            width: 85px; height: 85px; border-radius: 50%; border: none;
+            width: 85px; height: 85px; border-radius: 50%; border: 1px solid var(--glass-border);
             font-size: 1.1rem; font-weight: 500; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex; justify-content: center; align-items: center;
-            background-color: var(--surface-color); color: var(--text-primary);
+            background-color: var(--glass-surface); color: var(--text-primary);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
         }
-        .btn:hover { background-color: rgba(255, 255, 255, 0.15); }
+        .btn:hover { background-color: rgba(255, 255, 255, 0.1); }
         .btn:active { transform: scale(0.9); opacity: 0.8; }
 
-        #start-btn { color: var(--accent-green); background-color: rgba(50, 215, 75, 0.15); }
-        #start-btn:hover { background-color: rgba(50, 215, 75, 0.25); }
+        #start-btn { color: var(--accent-green); background-color: rgba(50, 215, 75, 0.1); border-color: rgba(50, 215, 75, 0.3); }
+        #start-btn:hover { background-color: rgba(50, 215, 75, 0.2); }
 
-        .btn.is-running { color: var(--accent-red) !important; background-color: rgba(255, 69, 58, 0.15) !important; }
-        .btn.is-running:hover { background-color: rgba(255, 69, 58, 0.25) !important; }
+        .btn.is-running { color: var(--accent-red) !important; background-color: rgba(255, 69, 58, 0.1) !important; border-color: rgba(255, 69, 58, 0.3) !important; }
+        .btn.is-running:hover { background-color: rgba(255, 69, 58, 0.2) !important; }
 
         /* Alerts */
         @keyframes pulse-ring {
@@ -183,8 +193,8 @@
             <div class="time-display">
                 <div class="time-text" id="time-text">00:00</div>
                 <div class="stats-container">
-                    <div class="stat-pill">Done<span class="stat-val" id="stat-comp">0</span></div>
-                    <div class="stat-pill">Resets<span class="stat-val" id="stat-reset">0</span></div>
+                    <div class="stat-pill">Done <span class="stat-val" id="stat-comp">0</span></div>
+                    <div class="stat-pill">Resets <span class="stat-val" id="stat-reset">0</span></div>
                 </div>
             </div>
         </div>
@@ -196,32 +206,42 @@
     </div>
 
     <script>
-        // --- ALWAYS ON TOP (PICTURE-IN-PICTURE) LOGIC ---
+        // Cache all DOM elements immediately so they never lose reference when moving to the PiP window
+        const scaler = document.getElementById('app-scaler');
+        const timeText = document.getElementById('time-text');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const ring = document.getElementById('progress-bar');
+        const statCompText = document.getElementById('stat-comp');
+        const statResetText = document.getElementById('stat-reset');
+        const utilityBar = document.getElementById('utility-bar');
+        const dial = document.getElementById('dial');
         const pipBtn = document.getElementById('pip-btn');
-        let currentWindow = window; // Tracks if we are in the main window or PiP
 
+        // Track which window is currently active (Main Tab vs Popout Widget)
+        let currentWindow = window;
+        let currentDocument = document;
+        let flashInterval;
+
+        // --- ALWAYS ON TOP (PICTURE-IN-PICTURE) LOGIC ---
         pipBtn.addEventListener('click', async () => {
-            // Check if the browser supports this new feature
             if (!('documentPictureInPicture' in window)) {
-                alert("Your browser doesn't support the Always-on-Top feature yet. Please use the latest Chrome or Edge on Windows.");
+                alert("Your browser doesn't support the Always-on-Top feature yet.");
                 return;
             }
 
             try {
-                // Request a floating 350x450 window
                 const pipWin = await window.documentPictureInPicture.requestWindow({
-                    width: 350,
-                    height: 500
+                    width: 320,
+                    height: 480
                 });
 
-                const scaler = document.getElementById('app-scaler');
-                
-                // Copy all CSS styles to the new floating window
+                // Copy styles to new window
                 const style = document.querySelector('style').cloneNode(true);
                 pipWin.document.head.appendChild(style);
                 
-                // Setup the floating window's background
-                pipWin.document.body.style.backgroundColor = "#000000";
+                // Set OS-enforced solid background for the new window
+                pipWin.document.body.style.backgroundColor = "#050505";
                 pipWin.document.body.style.margin = "0";
                 pipWin.document.body.style.display = "flex";
                 pipWin.document.body.style.justifyContent = "center";
@@ -229,22 +249,35 @@
                 pipWin.document.body.style.height = "100vh";
                 pipWin.document.body.style.overflow = "hidden";
                 
-                // Move the timer into the floating window
+                // Move the entire clock interface into the popup
                 pipWin.document.body.appendChild(scaler);
-                document.getElementById('utility-bar').style.display = 'none'; // Hide button
+                utilityBar.style.display = 'none'; 
                 
-                // Reroute resizing logic to the new window
+                // Re-route scaling and mouse events to the new window
                 currentWindow.removeEventListener('resize', resizeApp);
                 currentWindow = pipWin;
-                currentWindow.addEventListener('resize', resizeApp);
-                resizeApp();
+                currentDocument = pipWin.document;
                 
-                // When the floating window is closed, bring the timer back to the main tab
+                currentWindow.addEventListener('resize', resizeApp);
+                currentWindow.addEventListener('mouseup', handleMouseUp);
+                currentWindow.addEventListener('mousemove', handleMouseMove);
+                resizeApp(); // Force immediate scale to fit the new popup
+                
+                // Handle when the popup is closed
                 pipWin.addEventListener('pagehide', () => {
                     document.body.appendChild(scaler);
-                    document.getElementById('utility-bar').style.display = 'block';
+                    utilityBar.style.display = 'block';
+                    
+                    currentWindow.removeEventListener('resize', resizeApp);
+                    currentWindow.removeEventListener('mouseup', handleMouseUp);
+                    currentWindow.removeEventListener('mousemove', handleMouseMove);
+                    
                     currentWindow = window;
+                    currentDocument = document;
+                    
                     currentWindow.addEventListener('resize', resizeApp);
+                    currentWindow.addEventListener('mouseup', handleMouseUp);
+                    currentWindow.addEventListener('mousemove', handleMouseMove);
                     resizeApp();
                 });
 
@@ -255,11 +288,11 @@
 
         // --- RESPONSIVE AUTO-SCALING ENGINE ---
         function resizeApp() {
-            const scaler = document.getElementById('app-scaler');
             if(!scaler) return;
             const baseWidth = 450; 
             const baseHeight = 650;
             
+            // Calculates scale perfectly based on whichever window is currently active
             const scaleX = currentWindow.innerWidth / baseWidth;
             const scaleY = currentWindow.innerHeight / baseHeight;
             let scale = Math.min(scaleX, scaleY);
@@ -293,11 +326,6 @@
         // --- TIMER ENGINE ---
         let timeTotal = 0, timeLeft = 0, timerId = null, isRunning = false;
         let stats = { comp: 0, reset: 0 };
-
-        const timeText = document.getElementById('time-text');
-        const startBtn = document.getElementById('start-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const ring = document.getElementById('progress-bar');
         
         const radius = 170;
         const circumference = 2 * Math.PI * radius;
@@ -324,7 +352,7 @@
         function triggerCompletion() {
             isRunning = false;
             stats.comp++;
-            document.getElementById('stat-comp').innerText = stats.comp;
+            statCompText.innerText = stats.comp;
             
             startBtn.innerText = 'Start';
             startBtn.classList.remove('is-running');
@@ -334,13 +362,13 @@
             
             playChime();
 
-            // Flashing title trick for extra visibility
+            // Flash the title of the active window
             let flash = false;
-            const flashInterval = setInterval(() => {
-                document.title = flash ? "🔴 TIME UP!" : "Timer Done";
+            flashInterval = setInterval(() => {
+                currentDocument.title = flash ? "🔴 TIME UP!" : "Timer Done";
                 flash = !flash;
             }, 500);
-            setTimeout(() => { clearInterval(flashInterval); document.title = "Timer"; }, 6000);
+            setTimeout(() => { clearInterval(flashInterval); currentDocument.title = "Timer"; }, 6000);
         }
 
         startBtn.addEventListener('click', () => {
@@ -358,6 +386,8 @@
                 startBtn.classList.add('is-running');
                 ring.classList.remove('alert-active');
                 ring.style.stroke = "var(--accent-green)";
+                clearInterval(flashInterval);
+                currentDocument.title = "Timer Running";
                 
                 timerId = setInterval(() => {
                     timeLeft--;
@@ -374,25 +404,27 @@
             }
         });
 
+        // The reset button now reliably works inside the PiP window
         resetBtn.addEventListener('click', () => {
             clearInterval(timerId);
+            clearInterval(flashInterval);
+            currentDocument.title = "Timer";
             isRunning = false;
             startBtn.innerText = 'Start';
             startBtn.classList.remove('is-running');
             stats.reset++;
-            document.getElementById('stat-reset').innerText = stats.reset;
+            statResetText.innerText = stats.reset;
             setTime(0);
         });
 
         // --- INTERACTION ---
-        const dial = document.getElementById('dial');
-        
         dial.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (!isRunning) setTime(timeLeft + (e.deltaY < 0 ? 60 : -60));
         }, { passive: false });
 
         let isDragging = false, lastAngle = 0;
+        
         dial.addEventListener('mousedown', (e) => {
             if (isRunning) return;
             isDragging = true;
@@ -400,8 +432,9 @@
             lastAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
         });
 
-        currentWindow.addEventListener('mouseup', () => isDragging = false);
-        currentWindow.addEventListener('mousemove', (e) => {
+        // Centralized drag functions so they can be securely attached to whichever window is active
+        function handleMouseUp() { isDragging = false; }
+        function handleMouseMove(e) {
             if (!isDragging || isRunning) return;
             const rect = dial.getBoundingClientRect();
             
@@ -414,7 +447,11 @@
                 setTime(timeLeft + (delta > 0 ? 60 : -60));
                 lastAngle = currentAngle;
             }
-        });
+        }
+
+        // Attach mouse events to the initial main window
+        currentWindow.addEventListener('mouseup', handleMouseUp);
+        currentWindow.addEventListener('mousemove', handleMouseMove);
 
         setTime(0);
     </script>
