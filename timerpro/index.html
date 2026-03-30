@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotary Timer</title>
+    <style>
+        /* --- ALL PREVIOUS CSS REMAINS EXACTLY THE SAME --- */
+        :root {
+            --bg-dark: #0a0a0a; --cyan-glow: #00e5ff; --cyan-dim: #003344;
+            --alert-red: #ff2a2a; --glass-face: #050505; --toast-bg: rgba(32, 32, 32, 0.9);
+        }
+        body {
+            background-color: var(--bg-dark); color: #fff; font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; user-select: none;
+        }
+        .app-container { display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; z-index: 10; }
+        .metal-bezel { width: 420px; height: 420px; border-radius: 50%; background: conic-gradient(#787878 0deg, #e6e6e6 30deg, #787878 60deg, #333 90deg, #787878 120deg, #e6e6e6 150deg, #787878 180deg, #333 210deg, #787878 240deg, #e6e6e6 270deg, #787878 300deg, #333 330deg, #787878 360deg); display: flex; justify-content: center; align-items: center; box-shadow: 0 25px 50px rgba(0,0,0,0.9), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -4px 8px rgba(0,0,0,0.8); position: relative; }
+        .inner-ring { width: 390px; height: 390px; border-radius: 50%; background-color: #1a1a1a; background-image: repeating-conic-gradient(#111 0deg 2deg, #222 2deg 4deg); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 5px 15px rgba(0,0,0,0.9); }
+        .glass-face { width: 360px; height: 360px; background: var(--glass-face); border-radius: 50%; position: relative; cursor: grab; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 0 40px #000; overflow: hidden; }
+        .glass-face:active { cursor: grabbing; }
+        .glass-face::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 100%); pointer-events: none; transform: rotate(-15deg); }
+        .progress-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .progress-circle { transition: stroke-dashoffset 0.1s linear, stroke 0.3s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .display-wrapper { display: flex; align-items: center; gap: 15px; z-index: 2; margin-top: -20px; }
+        .digit { position: relative; width: 45px; height: 80px; }
+        .seg { position: absolute; background: var(--cyan-dim); border-radius: 10px; transition: 0.1s; }
+        .seg.on { background: var(--cyan-glow); box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); }
+        .seg-h { width: 28px; height: 10px; left: 8.5px; } .seg-v { width: 10px; height: 28px; } 
+        .seg-a { top: 0; } .seg-g { top: 35px; } .seg-d { bottom: 0; }
+        .seg-f { top: 8px; left: 0; } .seg-b { top: 8px; right: 0; }
+        .seg-e { bottom: 8px; left: 0; } .seg-c { bottom: 8px; right: 0; }
+        .unit-label { font-size: 1.2rem; font-weight: bold; color: #666; position: absolute; }
+        #label-m { right: 120px; top: -15px; } #label-s { right: -25px; bottom: 0; }
+        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #222; margin-top: 30px; z-index: 2; transition: 0.3s; }
+        .led-active { background: var(--alert-red); box-shadow: 0 0 20px var(--alert-red); animation: flash 0.8s infinite alternate; }
+        @keyframes flash { from { opacity: 0.4; } to { opacity: 1; } }
+        .controls-panel { margin-top: 30px; display: flex; gap: 15px; transition: opacity 0.3s; }
+        button { background: linear-gradient(to bottom, #333, #1a1a1a); border: 1px solid #444; color: #ccc; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1); transition: all 0.2s; }
+        button:hover { background: linear-gradient(to bottom, #444, #222); color: #fff; border-color: #666; }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        #start-btn { color: var(--cyan-glow); border-color: #005566; }
+        .utility-bar { position: absolute; top: -40px; right: 0; display: flex; gap: 10px; transition: opacity 0.3s; }
+        .icon-btn { padding: 5px 10px; font-size: 0.8rem; background: transparent; box-shadow: none; border: 1px solid #444; }
+        .is-reduced { position: fixed !important; bottom: 20px; right: 20px; transform: scale(0.35); transform-origin: bottom right; }
+        .is-reduced .controls-panel { opacity: 0; pointer-events: none; }
+        .is-reduced .utility-bar { opacity: 0; pointer-events: none; }
+        #expand-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; font-size: 2.5rem; color: white; opacity: 0; pointer-events: none; background: rgba(0,0,0,0.8); border-radius: 50%; padding: 25px; border: 2px solid #555; transition: 0.2s; }
+        .is-reduced:hover #expand-btn { opacity: 1; pointer-events: all; cursor: pointer; }
+        #expand-btn:hover { background: var(--cyan-dim); border-color: var(--cyan-glow); }
+        .win11-toast { position: fixed; bottom: 20px; right: -350px; width: 300px; background: var(--toast-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; }
+        .toast-show { right: 20px; } 
+        .toast-icon { width: 40px; height: 40px; border-radius: 5px; background: linear-gradient(135deg, #00e5ff, #005566); display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+        .toast-content { flex-grow: 1; }
+        .toast-title { font-weight: bold; font-size: 0.95rem; margin: 0 0 4px 0; color: #fff; }
+        .toast-msg { font-size: 0.85rem; margin: 0; color: #bbb; }
+        .toast-close { background: none; border: none; color: #888; box-shadow: none; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
+        .toast-close:hover { color: #fff; background: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-wrapper">
+        <div class="utility-bar">
+            <button class="icon-btn" id="reduce-btn" title="Dock to Corner">➖ Mini Player</button>
+        </div>
+        <button id="expand-btn" title="Click to Expand">⤢</button>
+        <div class="metal-bezel">
+            <div class="inner-ring">
+                <div class="glass-face" id="dial">
+                    <svg class="progress-container" viewBox="0 0 360 360">
+                        <circle cx="180" cy="180" r="165" fill="none" stroke="#111" stroke-width="8"/>
+                        <circle id="progress-bar" class="progress-circle" cx="180" cy="180" r="165" fill="none" stroke="var(--cyan-glow)" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                    <div class="display-wrapper">
+                        <span class="unit-label" id="label-m">M</span>
+                        <div class="digit" id="min-tens"></div><div class="digit" id="min-ones"></div>
+                        <div style="width: 10px;"></div>
+                        <div class="digit" id="sec-tens"></div><div class="digit" id="sec-ones"></div>
+                        <span class="unit-label" id="label-s">S</span>
+                    </div>
+                    <div class="status-led" id="status-led"></div>
+                </div>
+            </div>
+        </div>
+        <div class="controls-panel">
+            <button id="start-btn">START</button>
+            <button id="reset-btn">RESET</button>
+        </div>
+    </div>
+
+    <div class="win11-toast" id="custom-toast">
+        <div class="toast-icon">⏳</div>
+        <div class="toast-content">
+            <p class="toast-title">Rotary Timer</p>
+            <p class="toast-msg">Time is up! Session completed.</p>
+        </div>
+        <button class="toast-close" onclick="closeToast()">×</button>
+    </div>
+
+    <script>
+        // --- 7-SEGMENT LOGIC ---
+        const segMap = {
+            0: ['a','b','c','d','e','f'], 1: ['b','c'], 2: ['a','b','g','e','d'],
+            3: ['a','b','g','c','d'], 4: ['f','g','b','c'], 5: ['a','f','g','c','d'],
+            6: ['a','f','g','e','c','d'], 7: ['a','b','c'], 8: ['a','b','c','d','e','f','g'],
+            9: ['a','b','g','c','d']
+        };
+
+        function buildDigit(id) {
+            const container = document.getElementById(id);
+            ['a','b','c','d','e','f','g'].forEach(s => {
+                const el = document.createElement('div');
+                el.className = `seg seg-${['a','g','d'].includes(s) ? 'h' : 'v'} seg-${s}`;
+                el.id = `${id}-${s}`;
+                container.appendChild(el);
+            });
+        }
+        ['min-tens', 'min-ones', 'sec-tens', 'sec-ones'].forEach(buildDigit);
+
+        function updateDisplayTime(m, s) {
+            const setDigit = (id, val) => {
+                document.querySelectorAll(`#${id} .seg`).forEach(el => el.classList.remove('on'));
+                segMap[val].forEach(s => document.getElementById(`${id}-${s}`).classList.add('on'));
+            };
+            setDigit('min-tens', Math.floor(m / 10)); setDigit('min-ones', m % 10);
+            setDigit('sec-tens', Math.floor(s / 10)); setDigit('sec-ones', s % 10);
+        }
+
+        // --- NEW: WEB AUDIO API CHIME ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playChime() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+            osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.5);
+            
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.5);
+        }
+
+        // --- NEW: FLASHING TAB TITLE ---
+        let titleInterval;
+        const originalTitle = "Rotary Timer";
+        
+        function startFlashingTitle() {
+            let isFlashing = false;
+            titleInterval = setInterval(() => {
+                document.title = isFlashing ? "🔴 TIME UP!" : originalTitle;
+                isFlashing = !isFlashing;
+            }, 500);
+        }
+
+        function stopFlashingTitle() {
+            clearInterval(titleInterval);
+            document.title = originalTitle;
+        }
+
+        // --- TIMER ENGINE ---
+        let timeTotal = 0, timeLeft = 0, timerId = null, isRunning = false;
+        const led = document.getElementById('status-led');
+        const startBtn = document.getElementById('start-btn');
+        const ring = document.getElementById('progress-bar');
+        const ringCircumference = 165 * 2 * Math.PI;
+
+        ring.style.strokeDasharray = ringCircumference;
+        ring.style.strokeDashoffset = 0;
+
+        function setTime(seconds) {
+            if (isRunning) return;
+            timeLeft = Math.max(0, Math.min(seconds, 5999));
+            timeTotal = timeLeft;
+            updateDisplayTime(Math.floor(timeLeft / 60), timeLeft % 60);
+            ring.style.strokeDashoffset = 0;
+            led.classList.remove('led-active');
+            ring.style.stroke = "var(--cyan-glow)";
+        }
+
+        const toastEl = document.getElementById('custom-toast');
+        let toastTimeout;
+
+        function showToast() {
+            toastEl.classList.add('toast-show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(closeToast, 6000);
+            
+            // Try Native OS Notification
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification("Rotary Timer", { body: "Time is up! Session completed." });
+                } catch (e) { console.log("Native OS notification blocked by browser."); }
+            }
+        }
+
+        function closeToast() {
+            toastEl.classList.remove('toast-show');
+        }
+
+        function triggerCompletion() {
+            isRunning = false;
+            startBtn.innerText = 'START';
+            led.classList.add('led-active');
+            ring.style.stroke = "var(--alert-red)";
+            ring.style.strokeDashoffset = 0;
+            
+            // The Triple Threat Alert
+            playChime();
+            startFlashingTitle();
+            showToast(); 
+        }
+
+        startBtn.addEventListener('click', async () => {
+            // Unlock audio context on first user interaction
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // Request Notification Permissions
+            if ("Notification" in window && Notification.permission === "default") {
+                await Notification.requestPermission();
+            }
+
+            if (timeLeft <= 0) return;
+            if (isRunning) {
+                clearInterval(timerId); isRunning = false; startBtn.innerText = 'RESUME';
+            } else {
+                isRunning = true; startBtn.innerText = 'PAUSE';
+                led.classList.remove('led-active'); ring.style.stroke = "var(--cyan-glow)";
+                stopFlashingTitle();
+                
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateDisplayTime(Math.floor(timeLeft / 60), timeLeft % 60);
+                    ring.style.strokeDashoffset = ringCircumference - ((timeLeft / timeTotal) * ringCircumference);
+                    if (timeLeft <= 0) { clearInterval(timerId); triggerCompletion(); }
+                }, 1000);
+            }
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            clearInterval(timerId); isRunning = false; startBtn.innerText = 'START';
+            setTime(0);
+            closeToast();
+            stopFlashingTitle();
+        });
+
+        // --- INTERACTION ---
+        const dial = document.getElementById('dial');
+        dial.addEventListener('wheel', (e) => { e.preventDefault(); if (!isRunning) setTime(timeLeft + (e.deltaY < 0 ? 60 : -60)); }, { passive: false });
+        let isDragging = false, lastAngle = 0;
+        dial.addEventListener('mousedown', (e) => {
+            if (isRunning) return;
+            isDragging = true;
+            const rect = dial.getBoundingClientRect();
+            lastAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging || isRunning) return;
+            const rect = dial.getBoundingClientRect();
+            const currentAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
+            let delta = currentAngle - lastAngle;
+            if (delta > Math.PI) delta -= Math.PI * 2; if (delta < -Math.PI) delta += Math.PI * 2;
+            if (Math.abs(delta) > 0.08) { setTime(timeLeft + (delta > 0 ? 60 : -60)); lastAngle = currentAngle; }
+        });
+
+        // --- REDUCED MODE ---
+        const appWrapper = document.getElementById('app-wrapper');
+        document.getElementById('reduce-btn').addEventListener('click', () => { appWrapper.classList.add('is-reduced'); });
+        document.getElementById('expand-btn').addEventListener('click', () => { appWrapper.classList.remove('is-reduced'); });
+
+        setTime(0);
+    </script>
+</body>
+</html>
