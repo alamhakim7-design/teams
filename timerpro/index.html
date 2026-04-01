@@ -31,6 +31,34 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* --- LIVE DATE & TIME (LOW PROFILE) --- */
+        .datetime-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 50;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            pointer-events: none; /* Let clicks pass through */
+            line-height: 1.2;
+        }
+        .datetime-info:hover { opacity: 1; }
+        
+        #current-time {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+        
+        #current-date {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
         /* --- UTILITY BAR --- */
         .utility-bar {
             position: absolute;
@@ -274,6 +302,11 @@
 </head>
 <body>
 
+    <div class="datetime-info" id="datetime-info">
+        <div id="current-time">--:-- --</div>
+        <div id="current-date">--- --, ----</div>
+    </div>
+
     <div class="utility-bar" id="utility-bar">
         <button class="icon-btn" id="open-todo-btn">📝 Tasks</button>
         <button class="icon-btn" id="pip-btn">🗗 Pop Out</button>
@@ -347,27 +380,45 @@
         const dial = document.getElementById('dial');
         const pipBtn = document.getElementById('pip-btn');
         const openTodoBtn = document.getElementById('open-todo-btn');
-        const closeTodoBtn = document.getElementById('close-toast-btn'); // For Toast
+        const closeTodoBtn = document.getElementById('close-toast-btn'); 
+        const datetimeInfo = document.getElementById('datetime-info');
+        const currentTimeEl = document.getElementById('current-time');
+        const currentDateEl = document.getElementById('current-date');
         
         let currentWindow = window;
         let currentDocument = document;
         let flashInterval;
 
-        // --- TO-DO LIST LOGIC ---
-        // Set low-profile today's date
-        const dateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
-        document.getElementById('display-date').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+        // --- LIVE DATE & TIME LOGIC ---
+        function updateLiveClock() {
+            const now = new Date();
+            
+            // Format Time (12hr with AM/PM)
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0 becomes 12
+            currentTimeEl.innerText = `${hours}:${minutes} ${ampm}`;
+            
+            // Format Date (e.g., Apr 1, 2026)
+            const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+            currentDateEl.innerText = now.toLocaleDateString('en-US', dateOptions);
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock(); // Init immediately
 
-        // Open/Close Modal
+        // --- TO-DO LIST LOGIC ---
+        const listDateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
+        document.getElementById('display-date').innerText = new Date().toLocaleDateString('en-US', listDateOptions);
+
         openTodoBtn.addEventListener('click', () => todoOverlay.classList.add('active'));
         document.getElementById('close-todo-btn').addEventListener('click', () => todoOverlay.classList.remove('active'));
         
-        // Close if clicked outside the modal
         todoOverlay.addEventListener('click', (e) => {
             if (e.target === todoOverlay) todoOverlay.classList.remove('active');
         });
 
-        // Save & Load Tasks using LocalStorage
         function saveTasks() {
             const tasks = [];
             for(let i=0; i<5; i++) {
@@ -389,12 +440,11 @@
             }
         }
 
-        // Attach save listeners to inputs and checkboxes
         for(let i=0; i<5; i++) {
             document.getElementById(`task-${i}`).addEventListener('input', saveTasks);
             document.getElementById(`check-${i}`).addEventListener('change', saveTasks);
         }
-        loadTasks(); // Load on start
+        loadTasks(); 
 
         // --- ALWAYS ON TOP (PICTURE-IN-PICTURE) LOGIC ---
         pipBtn.addEventListener('click', async () => {
@@ -406,11 +456,9 @@
             try {
                 const pipWin = await window.documentPictureInPicture.requestWindow({ width: 340, height: 500 });
 
-                // Copy styles to new window
                 const style = document.querySelector('style').cloneNode(true);
                 pipWin.document.head.appendChild(style);
                 
-                // Set solid dark background for PiP
                 pipWin.document.body.style.backgroundColor = "#050505";
                 pipWin.document.body.style.margin = "0";
                 pipWin.document.body.style.display = "flex";
@@ -419,12 +467,11 @@
                 pipWin.document.body.style.height = "100vh";
                 pipWin.document.body.style.overflow = "hidden";
                 
-                // Move the Clock, Toaster, AND Todo Overlay into the popup window
+                pipWin.document.body.appendChild(datetimeInfo); // Bring Clock over
                 pipWin.document.body.appendChild(scaler);
                 pipWin.document.body.appendChild(toastEl);
                 pipWin.document.body.appendChild(todoOverlay);
                 
-                // Create a mini button for tasks inside the PiP window
                 const miniTodoBtn = document.createElement('button');
                 miniTodoBtn.innerText = "📝 Tasks";
                 miniTodoBtn.style.cssText = "position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 15px; font-size: 0.75rem; cursor: pointer; z-index: 50;";
@@ -433,7 +480,6 @@
 
                 utilityBar.style.display = 'none'; 
                 
-                // Update Window References
                 currentWindow.removeEventListener('resize', resizeApp);
                 currentWindow = pipWin;
                 currentDocument = pipWin.document;
@@ -443,8 +489,8 @@
                 currentWindow.addEventListener('mousemove', handleMouseMove);
                 resizeApp(); 
                 
-                // Handle closing the PiP Window
                 pipWin.addEventListener('pagehide', () => {
+                    document.body.appendChild(datetimeInfo);
                     document.body.appendChild(scaler);
                     document.body.appendChild(toastEl);
                     document.body.appendChild(todoOverlay);
