@@ -31,15 +31,17 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Utility Bar */
+        /* --- UTILITY BAR --- */
         .utility-bar {
             position: absolute;
             top: 20px;
             right: 20px;
             z-index: 50;
+            display: flex;
+            gap: 10px;
         }
 
-        .popout-btn {
+        .icon-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--glass-border);
             color: #fff;
@@ -51,10 +53,13 @@
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .popout-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .icon-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
-        /* Auto-Scaling Wrapper */
+        /* --- AUTO-SCALING WRAPPER --- */
         #app-scaler {
             display: flex;
             flex-direction: column;
@@ -76,7 +81,7 @@
             text-align: center;
         }
 
-        /* Glass Rotary Dial */
+        /* --- GLASS ROTARY DIAL --- */
         .timer-container {
             position: relative;
             width: 360px;
@@ -114,7 +119,7 @@
             transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
         }
 
-        /* Typography */
+        /* --- TYPOGRAPHY & STATS --- */
         .time-display {
             display: flex;
             flex-direction: column;
@@ -145,7 +150,7 @@
         }
         .stat-val { color: var(--text-primary); margin-left: 6px; font-weight: 700; }
 
-        /* Controls */
+        /* --- CONTROLS --- */
         .controls { display: flex; gap: 50px; flex-shrink: 0; }
         .btn {
             width: 85px; height: 85px; border-radius: 50%; border: 1px solid var(--glass-border);
@@ -180,7 +185,7 @@
             display: flex; align-items: center; gap: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); 
             transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; 
         }
-        .toast-show { right: 20px; } /* Slides in */
+        .toast-show { right: 20px; } 
         
         .toast-icon { 
             width: 36px; height: 36px; border-radius: 8px; 
@@ -192,12 +197,86 @@
         .toast-msg { font-size: 0.8rem; margin: 0; color: #bbb; }
         .toast-close { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
         .toast-close:hover { color: #fff; }
+
+        /* --- TO-DO LIST OVERLAY --- */
+        .todo-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .todo-overlay.active { opacity: 1; pointer-events: all; }
+
+        .todo-modal {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            width: 85%;
+            max-width: 380px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .todo-overlay.active .todo-modal { transform: translateY(0); }
+
+        .todo-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 5px;
+        }
+        .todo-title { margin: 0; font-size: 1.2rem; font-weight: 600; }
+        .todo-date { 
+            margin: 0; font-size: 0.7rem; font-weight: 600; 
+            color: var(--text-secondary); letter-spacing: 1px; text-transform: uppercase; 
+        }
+        .todo-close {
+            background: none; border: none; color: var(--text-secondary);
+            font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0;
+        }
+        .todo-close:hover { color: #fff; }
+
+        .todo-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        
+        .todo-item {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            border-radius: 12px; padding: 10px 15px;
+            transition: border 0.2s;
+        }
+        .todo-item:focus-within { border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.06); }
+
+        .custom-checkbox {
+            appearance: none; width: 20px; height: 20px; border-radius: 6px;
+            border: 2px solid var(--text-secondary); background: transparent;
+            cursor: pointer; position: relative; transition: 0.2s; flex-shrink: 0;
+        }
+        .custom-checkbox:checked { background: var(--accent-green); border-color: var(--accent-green); }
+        .custom-checkbox:checked::after {
+            content: '✔'; position: absolute; color: #000; font-size: 12px; font-weight: bold;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+
+        .todo-input {
+            background: transparent; border: none; color: #fff; font-size: 0.95rem;
+            width: 100%; outline: none; font-family: inherit;
+        }
+        .todo-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+        .custom-checkbox:checked + .todo-input { text-decoration: line-through; color: var(--text-secondary); }
+
     </style>
 </head>
 <body>
 
     <div class="utility-bar" id="utility-bar">
-        <button class="popout-btn" id="pip-btn">🗗 Pop Out (Always on Top)</button>
+        <button class="icon-btn" id="open-todo-btn">📝 Tasks</button>
+        <button class="icon-btn" id="pip-btn">🗗 Pop Out</button>
     </div>
 
     <div id="app-scaler">
@@ -233,10 +312,31 @@
         <button class="toast-close" id="close-toast-btn">×</button>
     </div>
 
+    <div class="todo-overlay" id="todo-overlay">
+        <div class="todo-modal">
+            <div class="todo-header">
+                <div>
+                    <h2 class="todo-title">Focus Tasks</h2>
+                    <p class="todo-date" id="display-date">MONDAY, JAN 1</p>
+                </div>
+                <button class="todo-close" id="close-todo-btn">×</button>
+            </div>
+            
+            <div class="todo-list" id="task-container">
+                <div class="todo-item"><input type="checkbox" class="custom-checkbox" id="check-0"><input type="text" class="todo-input" id="task-0" placeholder="Add a task..."></div>
+                <div class="todo-item"><input type="checkbox" class="custom-checkbox" id="check-1"><input type="text" class="todo-input" id="task-1" placeholder="Add a task..."></div>
+                <div class="todo-item"><input type="checkbox" class="custom-checkbox" id="check-2"><input type="text" class="todo-input" id="task-2" placeholder="Add a task..."></div>
+                <div class="todo-item"><input type="checkbox" class="custom-checkbox" id="check-3"><input type="text" class="todo-input" id="task-3" placeholder="Add a task..."></div>
+                <div class="todo-item"><input type="checkbox" class="custom-checkbox" id="check-4"><input type="text" class="todo-input" id="task-4" placeholder="Add a task..."></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Cache DOM elements
         const scaler = document.getElementById('app-scaler');
         const toastEl = document.getElementById('custom-toast');
+        const todoOverlay = document.getElementById('todo-overlay');
         const timeText = document.getElementById('time-text');
         const startBtn = document.getElementById('start-btn');
         const resetBtn = document.getElementById('reset-btn');
@@ -246,11 +346,55 @@
         const utilityBar = document.getElementById('utility-bar');
         const dial = document.getElementById('dial');
         const pipBtn = document.getElementById('pip-btn');
-        const closeToastBtn = document.getElementById('close-toast-btn');
-
+        const openTodoBtn = document.getElementById('open-todo-btn');
+        const closeTodoBtn = document.getElementById('close-toast-btn'); // For Toast
+        
         let currentWindow = window;
         let currentDocument = document;
         let flashInterval;
+
+        // --- TO-DO LIST LOGIC ---
+        // Set low-profile today's date
+        const dateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
+        document.getElementById('display-date').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+
+        // Open/Close Modal
+        openTodoBtn.addEventListener('click', () => todoOverlay.classList.add('active'));
+        document.getElementById('close-todo-btn').addEventListener('click', () => todoOverlay.classList.remove('active'));
+        
+        // Close if clicked outside the modal
+        todoOverlay.addEventListener('click', (e) => {
+            if (e.target === todoOverlay) todoOverlay.classList.remove('active');
+        });
+
+        // Save & Load Tasks using LocalStorage
+        function saveTasks() {
+            const tasks = [];
+            for(let i=0; i<5; i++) {
+                tasks.push({
+                    text: document.getElementById(`task-${i}`).value,
+                    done: document.getElementById(`check-${i}`).checked
+                });
+            }
+            localStorage.setItem('focusTasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const saved = JSON.parse(localStorage.getItem('focusTasks'));
+            if (saved && saved.length === 5) {
+                for(let i=0; i<5; i++) {
+                    document.getElementById(`task-${i}`).value = saved[i].text;
+                    document.getElementById(`check-${i}`).checked = saved[i].done;
+                }
+            }
+        }
+
+        // Attach save listeners to inputs and checkboxes
+        for(let i=0; i<5; i++) {
+            document.getElementById(`task-${i}`).addEventListener('input', saveTasks);
+            document.getElementById(`check-${i}`).addEventListener('change', saveTasks);
+        }
+        loadTasks(); // Load on start
 
         // --- ALWAYS ON TOP (PICTURE-IN-PICTURE) LOGIC ---
         pipBtn.addEventListener('click', async () => {
@@ -260,10 +404,7 @@
             }
 
             try {
-                const pipWin = await window.documentPictureInPicture.requestWindow({
-                    width: 320,
-                    height: 480
-                });
+                const pipWin = await window.documentPictureInPicture.requestWindow({ width: 340, height: 500 });
 
                 // Copy styles to new window
                 const style = document.querySelector('style').cloneNode(true);
@@ -278,9 +419,18 @@
                 pipWin.document.body.style.height = "100vh";
                 pipWin.document.body.style.overflow = "hidden";
                 
-                // Move the Clock AND the Toaster into the popup window
+                // Move the Clock, Toaster, AND Todo Overlay into the popup window
                 pipWin.document.body.appendChild(scaler);
                 pipWin.document.body.appendChild(toastEl);
+                pipWin.document.body.appendChild(todoOverlay);
+                
+                // Create a mini button for tasks inside the PiP window
+                const miniTodoBtn = document.createElement('button');
+                miniTodoBtn.innerText = "📝 Tasks";
+                miniTodoBtn.style.cssText = "position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 15px; font-size: 0.75rem; cursor: pointer; z-index: 50;";
+                miniTodoBtn.onclick = () => todoOverlay.classList.add('active');
+                pipWin.document.body.appendChild(miniTodoBtn);
+
                 utilityBar.style.display = 'none'; 
                 
                 // Update Window References
@@ -295,10 +445,10 @@
                 
                 // Handle closing the PiP Window
                 pipWin.addEventListener('pagehide', () => {
-                    // Move the Clock AND the Toaster back to the main tab
                     document.body.appendChild(scaler);
                     document.body.appendChild(toastEl);
-                    utilityBar.style.display = 'block';
+                    document.body.appendChild(todoOverlay);
+                    utilityBar.style.display = 'flex';
                     
                     currentWindow.removeEventListener('resize', resizeApp);
                     currentWindow.removeEventListener('mouseup', handleMouseUp);
@@ -313,9 +463,7 @@
                     resizeApp();
                 });
 
-            } catch (err) {
-                console.error("Failed to enter PiP:", err);
-            }
+            } catch (err) { console.error("Failed to enter PiP:", err); }
         });
 
         // --- RESPONSIVE AUTO-SCALING ENGINE ---
@@ -337,12 +485,10 @@
         function showToast() {
             toastEl.classList.add('toast-show');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(closeToast, 6000); // Auto-hide after 6 seconds
+            toastTimeout = setTimeout(closeToast, 6000);
         }
-        function closeToast() {
-            toastEl.classList.remove('toast-show');
-        }
-        closeToastBtn.addEventListener('click', closeToast);
+        function closeToast() { toastEl.classList.remove('toast-show'); }
+        document.getElementById('close-toast-btn').addEventListener('click', closeToast);
 
         // --- AUDIO CHIME ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -360,8 +506,7 @@
                 osc.start(startTime); osc.stop(startTime + 0.6);
             };
             const now = audioCtx.currentTime;
-            playNote(880, now); 
-            playNote(1108.73, now + 0.15); 
+            playNote(880, now); playNote(1108.73, now + 0.15); 
         }
 
         // --- TIMER ENGINE ---
@@ -402,7 +547,7 @@
             ring.style.strokeDashoffset = 0;
             
             playChime();
-            showToast(); // Trigger the toast in the active window!
+            showToast(); 
 
             let flash = false;
             flashInterval = setInterval(() => {
@@ -429,7 +574,7 @@
                 ring.style.stroke = "var(--accent-green)";
                 clearInterval(flashInterval);
                 currentDocument.title = "Timer Running";
-                closeToast(); // Hide toast if active
+                closeToast(); 
                 
                 timerId = setInterval(() => {
                     timeLeft--;
@@ -455,7 +600,7 @@
             startBtn.classList.remove('is-running');
             stats.reset++;
             statResetText.innerText = stats.reset;
-            closeToast(); // Clear toast on reset
+            closeToast();
             setTime(0);
         });
 
